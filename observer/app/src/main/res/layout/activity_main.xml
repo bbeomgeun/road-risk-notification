@@ -10,32 +10,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         >
 
-        <LinearLayout
+        <VideoView
+            android:id="@+id/videoView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <EditText
-                android:id="@+id/ipText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="5318fd8d4eab.ngrok.io"
-                android:textStyle="normal|italic"
-                android:layout_weight="3"
-                />
-
-            <Button
-                android:id="@+id/connectBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="커넥션 생성"
-                android:layout_weight="1"
-                />
-
-        </LinearLayout>
-
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_weight="1"
+            />
 
         <Button
             android:id="@+id/sendIamgeBtn"
@@ -44,26 +30,18 @@
             android:text="전송"
             />
 
-
         <TextView
             android:id="@+id/receiveText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="결과입니다."
-            />
-
-
-        <VideoView
-            android:id="@+id/videoView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="30dp"
+            android:text=""
             />
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             />
 
     </LinearLayout>
