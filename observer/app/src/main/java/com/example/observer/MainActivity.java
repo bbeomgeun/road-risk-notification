@@ -20,6 +20,7 @@ import android.widget.VideoView;
 
 import com.example.observer.model.Image;
 
+import java.text.DateFormat;
 import java.util.Date;
 
 import retrofit2.Call;
@@ -28,6 +29,9 @@ import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
+    private final String SERVER_PROTOCOL = "SERVER_PROTOCOL";       // SERVER_PROTOCOL
+    private final String SERVER_IP =  "SERVER_IP";                  //  SERVER_IP
+    private final int SERVER_PORT = 1111;                           // SERVER_PORT
     private NetworkService networkService;
 
     Camera camera = null;
@@ -35,18 +39,17 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     VideoView videoView = null;
     TextView textView = null;
 
-    // connect Test
-    TextView receiveText;
-    EditText ipText;
-    Button sendIamgeBtn, connectBtn;
-
-    String serverDomain, baseUrl;
-
     int width = 640; // 640;
     int height = 360; //360;
 
+    // connect Test
+    TextView receiveText;
+    Button sendIamgeBtn;
+
     long currentTime = System.currentTimeMillis();
     long lastThreadRunTime = System.currentTimeMillis();
+    long sendStartTime;
+    long sendCompleteTime;
 
     byte[] previewImage;
     Date imageDate;
@@ -108,36 +111,21 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        ApplicationController application = ApplicationController.getInstance();
-//        application.buildNetworkService("http", "3.34.82.228", 8000);
-//        networkService = ApplicationController.getInstance().getNetworkService();
+        ApplicationController application = ApplicationController.getInstance();
+        application.buildNetworkService(SERVER_PROTOCOL, SERVER_IP, SERVER_PORT);
+        networkService = ApplicationController.getInstance().getNetworkService();
 
         videoView = (VideoView)findViewById(R.id.videoView);
         textView = (TextView)findViewById(R.id.textView);
 
-        ipText = (EditText)findViewById(R.id.ipText);
         receiveText = (TextView)findViewById(R.id.receiveText);
         sendIamgeBtn = (Button)findViewById(R.id.sendIamgeBtn);
-        connectBtn = (Button)findViewById(R.id.connectBtn);
-
-        connectBtn.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                serverDomain = ipText.getText().toString();
-
-                ApplicationController application = ApplicationController.getInstance();
-                application.buildNetworkService("https", serverDomain);
-                networkService = ApplicationController.getInstance().getNetworkService();
-
-                receiveText.setText( serverDomain + " 커넥션 생성완료" );
-                connectBtn.setClickable(false);
-            }
-        });
-
 
         sendIamgeBtn.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
+                sendStartTime = System.currentTimeMillis();
+
                 //Restaurant POST
                 int[] rgbImage = convertYUV420_NV21toRGB8888( previewImage, width, height ); // GBR value
                 //int[] rgbImage = decodeYUV420SP( previewImage, width, height );
@@ -149,7 +137,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     @Override
                     public void onResponse(Call<Image> call, Response<Image> response) {
                         if( response.isSuccessful()) {
-                            receiveText.setText( response.body().getDate().toString() );
+                            sendCompleteTime = System.currentTimeMillis();
+                            receiveText.setText( "전송 성공. " + (sendStartTime - sendStartTime) + "milli seconds");
                         } else {
                             int StatusCode = response.code();
                             receiveText.setText( "Fail!!! " + "Status Code :" + StatusCode );
@@ -163,8 +152,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 });
             }
         }) ;
-
-
 
         // camera 기본 설정들
         camera = Camera.open();
