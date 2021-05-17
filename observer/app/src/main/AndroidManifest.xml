@@ -15,8 +15,11 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
+        android:name=".ApplicationController"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Observer">
+        android:theme="@style/Theme.Observer"
+        android:usesCleartextTraffic="true">  <!-- http 허용 -->
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
