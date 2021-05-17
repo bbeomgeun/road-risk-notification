@@ -21,6 +21,7 @@ import android.widget.VideoView;
 import com.example.observer.model.Image;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import retrofit2.Call;
@@ -32,7 +33,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private final String SERVER_PROTOCOL = "SERVER_PROTOCOL";       // SERVER_PROTOCOL
     private final String SERVER_IP =  "SERVER_IP";                  //  SERVER_IP
     private final int SERVER_PORT = 1111;                           // SERVER_PORT
-    private NetworkService networkService;
+    private static NetworkService networkService;
+
+    private final double TARGET_FRAME = 1;
 
     Camera camera = null;
     SurfaceHolder  holder = null;
@@ -43,63 +46,25 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     int height = 360; //360;
 
     // connect Test
-    TextView receiveText;
-    Button sendIamgeBtn;
+    private static TextView receiveText;
 
     long currentTime = System.currentTimeMillis();
     long lastThreadRunTime = System.currentTimeMillis();
-    long sendStartTime;
-    long sendCompleteTime;
 
-    byte[] previewImage;
-    Date imageDate;
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        previewImage = data;
-        imageDate = new Date();
-
         currentTime = System.currentTimeMillis();
 
-//        if( currentTime - lastThreadRunTime >= 5000){
-//            lastThreadRunTime = System.currentTimeMillis();
-//
-//            new Thread() {
-//                @Override
-//                public void run() {
-//                    SimpleDateFormat format1 = new SimpleDateFormat( "HH:mm:ss");
-//                    Date time = new Date();
-//                    String time1 = format1.format(time);
-//
-//                    Log.e( time1,  Integer.toString(data.length));
-//                    Log.e("Byte Data : ", data.toString());
-//
-//
-//                    int[] rgbData = convertYUV420_NV21toRGB8888( data, width, height );
-//                    StringBuilder rgbSb = new StringBuilder();
-//                    for( int rgb : rgbData ){
-//                        rgbSb.append( rgb );
-//                    }
-//                    Log.e("RGB1 Data  ", rgbSb.toString());
-//                    Log.e("RGB Data  ", Integer.toString(rgbData.length));
-//
-//                    int[] rgbData2 = decodeYUV420SP( data, width, height );
-//                    StringBuilder rgbSb2 = new StringBuilder();
-//                    for( int rgb : rgbData2 ){
-//                        rgbSb2.append( rgb );
-//                    }
-//                    Log.e("RGB2 Data  ", rgbSb2.toString());
-//                    Log.e("RGB Data  ", Integer.toString(rgbData2.length));
-//
-////                    StringBuilder sb = new StringBuilder();
-////                    StringBuilder asb = new StringBuilder();
-////                    for(final byte d: data)
-////                        sb.append(String.format("%02x", d&0xff));
-////
-////                    Log.e("Data : ", sb.toString());
-//                }
-//            }.start();
-//        }
+        if( currentTime - lastThreadRunTime >= 1000 / TARGET_FRAME ){
+            lastThreadRunTime = System.currentTimeMillis();
 
+            new Thread() {
+                @Override
+                public void run() {
+                    sendImage( data, width, height, new Date() );
+                }
+            }.start();
+        }
 
         textView.setHighlightColor(Color.BLACK);
         textView.setTextColor(Color.WHITE);
@@ -117,41 +82,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         videoView = (VideoView)findViewById(R.id.videoView);
         textView = (TextView)findViewById(R.id.textView);
-
         receiveText = (TextView)findViewById(R.id.receiveText);
-        sendIamgeBtn = (Button)findViewById(R.id.sendIamgeBtn);
-
-        sendIamgeBtn.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                sendStartTime = System.currentTimeMillis();
-
-                //Restaurant POST
-                int[] rgbImage = convertYUV420_NV21toRGB8888( previewImage, width, height ); // GBR value
-                //int[] rgbImage = decodeYUV420SP( previewImage, width, height );
-
-                Image image = new Image(rgbImage, width, height, imageDate);
-
-                Call<Image> postCall = networkService.post_image(image);
-                postCall.enqueue(new Callback<Image>() {
-                    @Override
-                    public void onResponse(Call<Image> call, Response<Image> response) {
-                        if( response.isSuccessful()) {
-                            sendCompleteTime = System.currentTimeMillis();
-                            receiveText.setText( "전송 성공. " + (sendStartTime - sendStartTime) + "milli seconds");
-                        } else {
-                            int StatusCode = response.code();
-                            receiveText.setText( "Fail!!! " + "Status Code :" + StatusCode );
-                            Log.e(ApplicationController.TAG, "Status Code : " + StatusCode);
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<Image> call, Throwable t) {
-                        Log.e(ApplicationController.TAG, "Fail Message : " + t.getMessage());
-                    }
-                });
-            }
-        }) ;
 
         // camera 기본 설정들
         camera = Camera.open();
@@ -216,6 +147,35 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
 
+    }
+
+
+    public static void sendImage( byte[] previewImage, int width, int height, Date imageDate ){
+        long sendStartTime = System.currentTimeMillis();
+
+        //Restaurant POST
+        //int[] rgbImage = convertYUV420_NV21toRGB8888( previewImage, width, height ); // GBR value -> 3초 정도 딜레이
+        //int[] rgbImage = decodeYUV420SP( previewImage, width, height ); // 3초 정도 딜레이
+        int[] rgbImage = {1,2,3,4,5,6,7,8,9,10}; // 0.05초 정도
+        Image image = new Image(rgbImage, width, height, imageDate);
+
+        Call<Image> postCall = networkService.post_image(image);
+        postCall.enqueue(new Callback<Image>() {
+            @Override
+            public void onResponse(Call<Image> call, Response<Image> response) {
+                if( response.isSuccessful()) {
+                    receiveText.setText( "전송 시간 : " + (System.currentTimeMillis() - sendStartTime) + " milli seconds");
+                } else {
+                    int StatusCode = response.code();
+                    receiveText.setText( "Fail!!! " + "Status Code :" + StatusCode );
+                    Log.e(ApplicationController.TAG, "Status Code : " + StatusCode);
+                }
+            }
+            @Override
+            public void onFailure(Call<Image> call, Throwable t) {
+                Log.e(ApplicationController.TAG, "Fail Message : " + t.getMessage());
+            }
+        });
     }
 
 
