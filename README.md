@@ -1,6 +1,4 @@
 # 딥러닝을 이용한 골목길 교통사고 예방
-# test comment
-## test comment2 수정했습니다
 
 ## 프로젝트 개요
 
@@ -31,3 +29,9 @@
  - Server : AWS, Ubuntu 20.04
  - Language : Python3.7.10
  - Framework : Django, Tensorflow 2.3.0-rc0, keras 2.4.3
+
+## 사용 기술
+
+ - YOLO
+ - DistanceNet
+ - DeepSORT for tracking
